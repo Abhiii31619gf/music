@@ -1,16 +1,14 @@
 import os
-import youtube_dl
-from pytube import YouTube
+import yt_dlp
 from telebot import TeleBot, types
-from youtube_search import YoutubeSearch
 from config import BOT_TOKEN, ADMIN_ID
 
-bot = TeleBot(BOT_TOKEN)
+bot = TeleBot("7692214272:AAGZZWAH5AO7YNyzRl0b-RR7m9S-NCz3ZJo")
 
 # ✅ Start Command
 @bot.message_handler(commands=['start'])
 def start(msg):
-    bot.send_message(msg.chat.id, f"🎶 Welcome to **MasterBhaiyaa's Music Bot v5.0 🔥**\n\n✅ Use /play <song_name>\n✅ Use /queue\n✅ Use /pause and /resume\n\n© @Team_Pro_Player")
+    bot.send_message(msg.chat.id, f"🎶 Welcome to **MasterBhaiyaa Music Bot v5.0 🔥**\n\n✅ Use /play <song_name>\n✅ Use /spotify <link>\n✅ Use /tiktok <link>\n✅ Use /bypass\n✅ /ping\n\n© @Team_Pro_Player")
 
 # ✅ Play Music Command
 @bot.message_handler(commands=['play'])
@@ -28,14 +26,6 @@ def play(msg):
     except Exception as e:
         bot.send_message(msg.chat.id, f"❌ Error: {e}")
 
-# ✅ Admin Panel
-@bot.message_handler(commands=['admin'])
-def admin(msg):
-    if msg.chat.id == ADMIN_ID:
-        bot.send_message(msg.chat.id, "👑 Welcome to Admin Panel, MasterBhaiyaa.")
-    else:
-        bot.send_message(msg.chat.id, "❌ Access Denied.")
-
 # ✅ Spotify Downloader
 @bot.message_handler(commands=['spotify'])
 def spotify(msg):
@@ -43,10 +33,19 @@ def spotify(msg):
     os.system(f'spotdl {link}')
     bot.send_audio(msg.chat.id, open("*.mp3", "rb"), caption="🎶 Spotify Song Downloaded\n\n© @Team_Pro_Player")
 
-# ✅ YouTube Search
+# ✅ TikTok Downloader
+@bot.message_handler(commands=['tiktok'])
+def tiktok(msg):
+    link = msg.text.split()[1]
+    os.system(f'yt-dlp {link} -x --audio-format mp3 -o "tiktok.mp3"')
+    bot.send_audio(msg.chat.id, open("tiktok.mp3", "rb"), caption="🎶 TikTok Audio Extracted\n\n© @Team_Pro_Player")
+
+# ✅ Cloudflare Bypass (Fixed YouTube Search)
 def search_youtube(query):
-    results = YoutubeSearch(query, max_results=1).to_dict()
-    return f"https://www.youtube.com{results[0]['url_suffix']}"
+    ydl_opts = {'quiet': True}
+    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+        info = ydl.extract_info(f"ytsearch:{query}", download=False)
+        return info['entries'][0]['webpage_url']
 
 # ✅ Audio Downloader
 def download_audio(url):
@@ -55,17 +54,25 @@ def download_audio(url):
         'outtmpl': 'song.mp3',
         'postprocessors': [{'key': 'FFmpegExtractAudio', 'preferredcodec': 'mp3'}]
     }
-    with youtube_dl.YoutubeDL(ydl_opts) as ydl:
+    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         ydl.download([url])
 
-# ✅ Cloudflare Bypass
+# ✅ Cloudflare Bypass Command
 @bot.message_handler(commands=['bypass'])
 def cloudflare_bypass(msg):
     bot.send_message(msg.chat.id, "✅ Cloudflare Bypass Active 🔥\n\n© @Team_Pro_Player")
 
-# ✅ Ping Test
+# ✅ Ping Test Command
 @bot.message_handler(commands=['ping'])
 def ping(msg):
     bot.send_message(msg.chat.id, "✅ Bot Active | Ping: 29ms 🔥\n\n© @Team_Pro_Player")
+
+# ✅ Admin Panel
+@bot.message_handler(commands=['admin'])
+def admin(msg):
+    if msg.chat.id == ADMIN_ID:
+        bot.send_message(msg.chat.id, "👑 Welcome to Admin Panel, MasterBhaiyaa.")
+    else:
+        bot.send_message(msg.chat.id, "❌ Access Denied.")
 
 bot.polling()
