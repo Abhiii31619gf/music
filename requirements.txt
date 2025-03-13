@@ -2,3 +2,4 @@ pyTelegramBotAPI
 youtube_dl
 pytube
 youtube-search-python
+spotdl
